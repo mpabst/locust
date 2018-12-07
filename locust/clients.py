@@ -15,6 +15,19 @@ from .exception import CatchResponseError, ResponseError
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
+def fix_status_code(response):
+    if response.status_code in [200, 201]:
+        data = response.json()
+
+        if 'errors' in data:
+            status_code = 500
+            first = data['errors'][0]
+            if 'statusCode' in first: status_code = first['statusCode']
+            else:
+                m = re.search(r'\s([45]\d{2})\s', first['systemMessage'])
+                if m: status_code = int(m.group(1))
+
+            response.status_code = status_code
 
 class LocustResponse(Response):
 
@@ -131,6 +144,7 @@ class HttpSession(requests.Session):
             return ResponseContextManager(response)
         else:
             try:
+                fix_status_code(response)
                 response.raise_for_status()
             except RequestException as e:
                 events.request_failure.fire(
