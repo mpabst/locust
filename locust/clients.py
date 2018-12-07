@@ -16,8 +16,6 @@ from .exception import CatchResponseError, ResponseError
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
 def fix_status_code(response):
-    import pdb; pdb.set_trace()
-
     if response.status_code in [200, 201]:
         data = response.json()
 
