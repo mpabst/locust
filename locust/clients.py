@@ -25,7 +25,7 @@ def fix_status_code(response):
             sysMsg = first['systemMessage']
 
             # Server erroneously reports 500 here
-            if sysMsg == 'User does not exist': status_code = 401
+            if sysMsg == 'User does not exist': status_code = 404
             elif 'statusCode' in first: status_code = first['statusCode']
             else:
                 # Try and dig a status code out of the error message
