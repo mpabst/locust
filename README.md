@@ -1,4 +1,4 @@
-# Locust
+# Fork of Locust by mpabst
 
 [![Build Status](https://img.shields.io/travis/locustio/locust.svg)](https://travis-ci.org/locustio/locust)
 [![codecov](https://codecov.io/gh/locustio/locust/branch/master/graph/badge.svg)](https://codecov.io/gh/locustio/locust)
