@@ -16,24 +16,31 @@ from .exception import CatchResponseError, ResponseError
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
 def fix_status_code(response):
-    if response.status_code in [200, 201]:
-        data = response.json()
+    if not response.status_code in [200, 201]: return
 
-        if 'errors' in data:
-            status_code = 500
-            first = data['errors'][0]
-            sysMsg = first['systemMessage']
+    data = response.json()
+    if not 'errors' in data: return
 
-            # Server erroneously reports 500 here
-            if sysMsg == 'User does not exist': status_code = 404
-            elif 'statusCode' in first: status_code = first['statusCode']
-            else:
-                # Try and dig a status code out of the error message
-                m = re.search(r'\s([45]\d{2})\s', sysMsg)
-                if m: status_code = int(m.group(1))
+    # Our default, in case we can't find any more info
+    status_code = 500
+    # Just use the first error for everything; I think the server doesn't send
+    # the others anyways
+    error = data['errors'][0]
+    message = error['systemMessage']
 
-            response.reason = sysMsg
-            response.status_code = status_code
+    # Server erroneously reports 500 here
+    if message == 'User does not exist': status_code = 404
+    # And this one 401
+    elif message == 'Collection not found': status_code = 404
+    # We're actually given a status code
+    elif 'statusCode' in error: status_code = error['statusCode']
+    else:
+        # Try and dig a status code out of the error message
+        m = re.search(r'\s([45]\d{2})\s', message)
+        if m: status_code = int(m.group(1))
+
+    response.reason = message
+    response.status_code = status_code
 
 class LocustResponse(Response):
 
