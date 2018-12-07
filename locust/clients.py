@@ -22,13 +22,17 @@ def fix_status_code(response):
         if 'errors' in data:
             status_code = 500
             first = data['errors'][0]
-            
-            if 'statusCode' in first: status_code = first['statusCode']
+            sysMsg = first['systemMessage']
+
+            # Server erroneously reports 500 here
+            if sysMsg == 'User does not exist': status_code = 401
+            elif 'statusCode' in first: status_code = first['statusCode']
             else:
-                m = re.search(r'\s([45]\d{2})\s', first['systemMessage'])
+                # Try and dig a status code out of the error message
+                m = re.search(r'\s([45]\d{2})\s', sysMsg)
                 if m: status_code = int(m.group(1))
 
-            response.reason = first['systemMessage']
+            response.reason = sysMsg
             response.status_code = status_code
 
 class LocustResponse(Response):
